@@ -3,6 +3,7 @@
 ## 5-Minute Setup
 
 ### 1. Push to GitHub
+
 ```bash
 cd manifesto_app
 git init
@@ -58,7 +59,7 @@ git push -u origin main
 ✅ HTTPS secured  
 ✅ Accessible from any device  
 ✅ Authentication for pipeline execution  
-✅ Auto-deploys when you push to GitHub  
+✅ Auto-deploys when you push to GitHub
 
 ## Upgrade from Free (Optional)
 
@@ -69,15 +70,18 @@ git push -u origin main
 ## Troubleshooting
 
 **Services won't start?**
+
 - Check build logs in Render dashboard
 - Ensure `.env` file exists locally
 - Verify all dependencies in requirements.txt
 
 **Can't authenticate?**
+
 - Use credentials from your .env file
 - Default: admin / manifesto123
 
 **API connection error?**
+
 - Check `VITE_API_URL` is correct
 - Wait 60 seconds after deployment
 - Check backend is running

@@ -16,8 +16,8 @@ services:
       - key: GROQ_API_KEY
         scope: build,runtime
     staticPublishPath: data/processed
-    
-  # Frontend Service  
+
+  # Frontend Service
   - type: web
     name: manifesto-frontend
     runtime: node

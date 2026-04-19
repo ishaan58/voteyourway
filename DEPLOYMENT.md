@@ -11,6 +11,7 @@ This guide will help you deploy the Manifesto Analyzer to Render.com for free an
 ## Step 1: Prepare Your Repository
 
 ### 1.1 Create a `.gitignore` file (if not exists)
+
 ```
 venv/
 node_modules/
@@ -26,7 +27,9 @@ build/
 ```
 
 ### 1.2 Create `.env` file in backend directory
+
 Copy from `.env.example` and update:
+
 ```
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=yoursecurepassword123
@@ -34,6 +37,7 @@ FRONTEND_URL=https://manifesto-frontend.onrender.com
 ```
 
 ### 1.3 Add `engines` to frontend/package.json
+
 ```json
 {
   "engines": {
@@ -43,14 +47,16 @@ FRONTEND_URL=https://manifesto-frontend.onrender.com
 ```
 
 ### 1.4 Update frontend Vite config
+
 Ensure your `vite.config.js` can serve from production:
+
 ```js
 export default {
   server: {
-    host: '0.0.0.0',
-    port: process.env.PORT || 5173
-  }
-}
+    host: "0.0.0.0",
+    port: process.env.PORT || 5173,
+  },
+};
 ```
 
 ## Step 2: Push to GitHub
@@ -111,20 +117,24 @@ If you want automated deployments, you can use the included `render.yaml`, but t
 ## Step 4: Access Your App
 
 Once both services are deployed:
+
 - Frontend: `https://manifesto-frontend.onrender.com`
 - Backend API: `https://manifesto-backend.onrender.com/api`
 
 ## Step 5: Configure for Production
 
 ### Update CORS Origins
+
 In `backend/main.py`, the CORS middleware automatically reads `FRONTEND_URL` from environment variables.
 
 ### Update API Endpoint
+
 The frontend automatically uses `VITE_API_URL` from environment variables. If not set, it defaults to `/api`.
 
 ## Important Notes
 
 ### Free Tier Limitations
+
 - **Spin down:** Services spin down after 15 minutes of inactivity
 - **First request:** Takes 30-60 seconds after spin-down
 - **Memory:** 512 MB
@@ -132,12 +142,14 @@ The frontend automatically uses `VITE_API_URL` from environment variables. If no
 - **Sleep time:** Services sleep after 15 min inactivity
 
 ### Authentication
+
 - Default credentials (can be changed in .env):
   - Username: `admin`
   - Password: `manifesto123`
 - Change these in production!
 
 ### PDF Processing
+
 - Large PDF files may timeout on free tier
 - Keep manifesto PDFs under 5MB when possible
 - Consider pre-processing locally and uploading results
@@ -145,20 +157,24 @@ The frontend automatically uses `VITE_API_URL` from environment variables. If no
 ## Troubleshooting
 
 ### Backend won't start
+
 - Check build logs in Render dashboard
 - Ensure `requirements.txt` has all dependencies
 - Verify Python version compatibility
 
 ### Frontend shows blank page
+
 - Check browser console for errors
 - Verify `VITE_API_URL` is correct
 - Clear browser cache
 
 ### "CORS error" when accessing API
+
 - Ensure `FRONTEND_URL` environment variable is set correctly
 - Check backend logs for CORS errors
 
 ### Pipeline times out
+
 - Free tier has 30-minute timeout limit
 - Large pipelines may exceed this
 - Consider uploading pre-processed data
@@ -166,6 +182,7 @@ The frontend automatically uses `VITE_API_URL` from environment variables. If no
 ## Upgrading from Free Tier
 
 When you're ready for production:
+
 1. Upgrade to paid plans for more resources
 2. Add custom domain
 3. Enable SSL/TLS
