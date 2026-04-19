@@ -1,0 +1,30 @@
+services:
+  # Backend API Service
+  - type: web
+    name: manifesto-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: manifesto123
+      - key: FRONTEND_URL
+        scope: build,runtime
+      - key: GROQ_API_KEY
+        scope: build,runtime
+    staticPublishPath: data/processed
+    
+  # Frontend Service  
+  - type: web
+    name: manifesto-frontend
+    runtime: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run preview -- --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: VITE_API_URL
+        value: https://manifesto-backend.onrender.com/api
+    rootDir: frontend
