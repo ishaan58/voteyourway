@@ -169,18 +169,17 @@ def run_pipeline(force_rerun: bool = False, use_scraper: bool = False):
         print("💾 Saved predictions.json")
 
         update_status("running", 95, "Scoring parties...")
-        _cache["scores"] = score_all_parties(predicted)
+        scores = score_all_parties(predicted)
+        _cache["scores"]   = scores
         _cache["promises"] = predicted
-        _cache["promises"] = predicted
-        print("✅ CACHE UPDATED:", len(_cache["promises"]))
+        print(f"✅ Pipeline done — {len(predicted)} promises, {len(scores)} parties scored")
 
-        update_status("completed", 100, f"Pipeline complete ({len(promises)} promises)")
+        update_status("completed", 100, f"Done — {len(promises)} promises analysed across {len(scores)} parties")
 
     except Exception as e:
         import traceback
         traceback.print_exc()
         update_status("error", 0, f"Pipeline error: {str(e)}")
-    print("✅ FINAL PROMISE COUNT:", len(predicted))
 
 
 # --- API Endpoints ---
@@ -200,7 +199,8 @@ def get_status():
         "pipeline_status": _cache.get("pipeline_status", "idle"),
         "progress": _cache.get("pipeline_progress", 0),
         "pipeline_message": _cache.get("pipeline_message", ""),
-        "has_data": has_data
+        "has_data": has_data,
+        "promise_count": len(_cache.get("promises") or []),
     }
 
 

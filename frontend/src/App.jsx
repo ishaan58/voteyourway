@@ -55,6 +55,27 @@ export default function App() {
   }, [pollStatus])
 
   const handleRun = async (forceRerun = false) => {
+    // If we already have credentials stored this session, skip the modal
+    const stored = sessionStorage.getItem('manifesto_auth')
+    if (stored) {
+      const { username, password } = JSON.parse(stored)
+      setAuthCredentials(username, password)
+      setRunning(true)
+      try {
+        await runPipeline(forceRerun, false)
+        setTimeout(pollStatus, 500)
+      } catch (err) {
+        if (err.response?.status === 401) {
+          // Credentials expired — clear and ask again
+          sessionStorage.removeItem('manifesto_auth')
+          setAuthError('Session expired. Please re-authenticate.')
+          setForceRerunFlag(forceRerun)
+          setAuthModal(true)
+        }
+        setRunning(false)
+      }
+      return
+    }
     setAuthError('')
     setAuthInput({ username: '', password: '' })
     setForceRerunFlag(forceRerun)
@@ -72,12 +93,17 @@ export default function App() {
     setAuthModal(false)
     
     try {
-      // Set credentials for this request
       setAuthCredentials(authInput.username, authInput.password)
+      // Persist for this session
+      sessionStorage.setItem('manifesto_auth', JSON.stringify({
+        username: authInput.username,
+        password: authInput.password
+      }))
       await runPipeline(forceRerunFlag, false)
       setTimeout(pollStatus, 500)
     } catch (err) {
       if (err.response?.status === 401) {
+        sessionStorage.removeItem('manifesto_auth')
         setAuthError('Invalid credentials')
         setAuthModal(true)
       }

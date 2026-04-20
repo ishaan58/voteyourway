@@ -50,16 +50,21 @@ def rule_based_extraction(sentences: List[str]) -> List[str]:
 
 
 def groq_extract_promises(text_chunk: str, party: str, year: str) -> List[Dict]:
-    """Use Groq API to extract structured promises from text."""
+    """Use Groq API to extract structured promises from text with exponential backoff."""
     groq_key = os.getenv("GROQ_API_KEY", "")
     if not groq_key or groq_key == "your_groq_api_key_here":
         return []
 
-    try:
-        import groq
-        client = groq.Groq(api_key=groq_key)
+    import groq
+    
+    max_retries = 3
+    base_delay = 15  # Start with 15 seconds
+    
+    for attempt in range(max_retries):
+        try:
+            client = groq.Groq(api_key=groq_key)
 
-        prompt = f"""Extract political promises from this {party} manifesto text ({year}).
+            prompt = f"""Extract political promises from this {party} manifesto text ({year}).
 
 Return ONLY a JSON array of objects. Each object must have:
 - "promise": the clean promise statement (1-2 sentences max)
@@ -75,29 +80,42 @@ Rules:
 Text:
 {text_chunk[:3000]}"""
 
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=2000
-        )
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=2000
+            )
 
-        content = response.choices[0].message.content.strip()
-        
-        # Parse JSON
-        content = re.sub(r'^```json\s*', '', content)
-        content = re.sub(r'\s*```$', '', content)
-        
-        promises = json.loads(content)
-        if isinstance(promises, list):
-            return promises
-        return []
+            content = response.choices[0].message.content.strip()
+            
+            # Parse JSON
+            content = re.sub(r'^```json\s*', '', content)
+            content = re.sub(r'\s*```$', '', content)
+            
+            promises = json.loads(content)
+            if isinstance(promises, list):
+                return promises
+            return []
 
-    except json.JSONDecodeError:
-        return []
-    except Exception as e:
-        print(f"  Groq API error: {e}")
-        return []
+        except json.JSONDecodeError:
+            return []
+        except Exception as e:
+            error_str = str(e)
+            if "429" in error_str or "rate_limit" in error_str.lower():
+                if attempt < max_retries - 1:
+                    wait_time = base_delay * (2 ** attempt)
+                    print(f"  Rate limit hit. Waiting {wait_time}s before retry {attempt + 1}/{max_retries - 1}...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    print(f"  Rate limit: Max retries exceeded, skipping chunk")
+                    return []
+            else:
+                print(f"  Groq API error: {e}")
+                return []
+    
+    return []
 
 
 def extract_promises_for_manifesto(manifesto: Dict) -> List[Dict]:
